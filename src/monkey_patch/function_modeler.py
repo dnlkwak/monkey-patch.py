@@ -32,16 +32,17 @@ class FunctionModeler(object):
         """
         example = FunctionExample(args, kwargs, output)
 
-        self.data_worker.log_align(function_hash, example)
-        if function_hash in self.dataset_sizes["alignments"]:
-            self.dataset_sizes["alignments"][function_hash] += 1 
-        else:
-            self.dataset_sizes["alignments"][function_hash] = 1
+        added = self.data_worker.log_align(function_hash, example)
+        if added:
+            if function_hash in self.dataset_sizes["alignments"]:
+                self.dataset_sizes["alignments"][function_hash] += 1 
+            else:
+                self.dataset_sizes["alignments"][function_hash] = 1
         
-        # update align buffer
-        if function_hash not in self.align_buffer:
-            self.align_buffer[function_hash] = bytearray()
-        self.align_buffer[function_hash].extend(str(example.__dict__).encode('utf-8') + b'\r\n')
+            # update align buffer
+            if function_hash not in self.align_buffer:
+                self.align_buffer[function_hash] = bytearray()
+            self.align_buffer[function_hash].extend(str(example.__dict__).encode('utf-8') + b'\r\n')
 
     
     def save_datapoint(self, func_hash, example):
@@ -121,7 +122,7 @@ class FunctionModeler(object):
         Load the config file for a function hash
         """
         
-        config = self.data_worker._load_function_config(func_hash)
+        config, default = self.data_worker._load_function_config(func_hash)
         self.function_configs[func_hash] = config
         return config
             
